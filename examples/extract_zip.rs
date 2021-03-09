@@ -51,13 +51,13 @@ fn real_main() -> i32 {
 
         // Get and Set permissions
         #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
+        {
+            use std::os::unix::fs::PermissionsExt;
 
-                if let Some(mode) = file.unix_mode() {
-                    fs::set_permissions(&outpath, fs::Permissions::from_mode(mode)).unwrap();
-                }
+            if let Some(mode) = file.unix_mode() {
+                fs::set_permissions(&outpath, fs::Permissions::from_mode(mode)).unwrap();
             }
+        }
     }
     return 0;
 }
