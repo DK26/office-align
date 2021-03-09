@@ -16,15 +16,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let extraction_path =  PathBuf::from_str(r"D:\git\office-align\sample\test_out").unwrap();
     let new_archive = PathBuf::from_str(r"D:\git\office-align\sample\new_pptx.pptx").unwrap();
 
+    // Extract the `.pptx` file
     zip_extract(&archive_file,&extraction_path)?;
 
     // TODO: Detect all hebrew letters
     // TODO: Replace with reversed version
-    // TODO: Attempt to find a way to proprly align right
+    // TODO: Attempt to find a way to properly align right
 
     let options = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated);
 
+    // Recreate the `.pptx` file
     zip_create_from_directory_with_options(&new_archive, &extraction_path, options)?;
 
     Ok(())
