@@ -1,11 +1,6 @@
-use std::collections::HashSet;
-use std::fs::File;
-use std::{
-    error::Error,
-    fs::read_to_string,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+//use std::fs::File;
+use std::{collections::HashSet, error::Error, fs::{self, File, OpenOptions, read_to_string}, path::PathBuf, str::FromStr};
+use std::io::prelude::*;  // This is a must for all `File` functionality to work
 
 // use office_align::high_zip::extract;
 
@@ -114,7 +109,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         println!("{}", file_path.path().display());
 
-        let data = read_to_string(file_path.path()).expect("Unable to load contents");
+        let data = read_to_string(file_path.path()).expect("Unable to open slide");
 
         //println!("data: {}", data);
         let hebrew_words = extract_hebrew(&data);
@@ -124,6 +119,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             //println!("File: {} Word: {}", file_path.path().display(), reverse(word));
             data = data.replace(word, &reverse(word));
         }
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(file_path.path())
+            .expect("Unable to open slide");
+        //let f:File;
+        //f = file;
+        file
+            .write(data.as_bytes())
+            .expect("Unable to write slide");
+         
+        drop(file);
 
         // println!("{}", data);
         // for mat in Regex::new(r"\w").unwrap().find_iter(&data) {
@@ -169,6 +177,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Recreate the `.pptx` file
     zip_create_from_directory_with_options(&new_archive, &extraction_path, options)?;
+
+    // Clean Extraction
+    fs::remove_dir_all(&extraction_path).expect("Unable to remove the extraction directory");
 
     Ok(())
 }
