@@ -179,7 +179,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     zip_create_from_directory_with_options(&new_archive, &extraction_path, options)?;
 
     // Clean Extraction
-    fs::remove_dir_all(&extraction_path).expect("Unable to remove the extraction directory");
+    //fs::remove_dir_all(&extraction_path).expect("Unable to remove the extraction directory");  // TODO: Uncomment for production
 
     Ok(())
 }
