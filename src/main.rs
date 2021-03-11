@@ -1,4 +1,5 @@
-use std::{error::Error, fs::File, path::{Path, PathBuf}, str::FromStr};
+use std::{error::Error, fs::read_to_string, path::{Path, PathBuf}, str::FromStr};
+use std::fs::File;
 
 // use office_align::high_zip::extract;
 
@@ -6,11 +7,16 @@ use walkdir::{DirEntry, WalkDir};
 use zip::write::FileOptions;
 use zip_extensions::{zip_create_from_directory_with_options, zip_extract};
 
+/// Returns `true` if a `DirEntry` is of given extension.
 fn file_extension(entry: &DirEntry, extension: &str) -> bool {
     entry.file_name()
          .to_str()
-         .map(|s| s.ends_with(extension))
+         .map(|s| s.ends_with("." + extension))
          .unwrap_or(false)
+}
+
+fn reverse(text: &str) -> String {
+    text.chars().rev().collect()
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -58,27 +64,50 @@ fn main() -> Result<(), Box<dyn Error>> {
     //     println!("{}", f.path().display());
     // });
 
+    fn str_strip_numbers(s: &str) -> Vec<i64> {
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"\d+").unwrap();
+        }
+        // iterate over all matches
+        RE.find_iter(s)
+            // try to parse the string matches as i64 (inferred from fn type signature)
+            // and filter out the matches that can't be parsed (e.g. if there are too many digits to store in an i64).
+            .filter_map(|digits| digits.as_str().parse().ok())
+            // collect the results in to a Vec<i64> (inferred from fn type signature)
+            .collect()
+    }
+
     //walker.into_iter().filter_map(Result::ok).filter(|file| file_extension(file, ".xml")).for_each(|file_path|{
     for file_path in walker.into_iter().filter_map(Result::ok).filter(|file| file_extension(file, ".xml")) {
         
         println!("{}", file_path.path().display());
         
-        // Open and read the file entirely
-        let mut src = File::open(&file_path.path());
-        match src {
-            Err(_) => continue,
+        let data = read_to_string(file_path.path()).expect("Unable to load contents");
 
-            Ok(file) => {
+        println!("data: {}", data);
 
-                let mut data = String::new();
-                file.read_to_string(&mut data);
-                drop(file);  // Close the file early
+        // // Open and read the file entirely
+        // let mut open_file = File::open(&file_path.path());
+        // match open_file {
 
-                println!("data: {}", data);
+        //     // Ignore error in opening file to not crash everything.
+        //     // FIXME: Make it crash later because we don't want a in our context half-job
+        //     Err(_) => continue,
 
-            }
+        //     Ok(file) => {
 
-        }   
+        //         let mut data = String::new();
+
+        //         //file.read_to_string(&mut data);
+        //         file.read_to_string(&mut data).except("Unable to load file");
+
+        //         drop(file);  // Close the file early
+
+        //         println!("data: {}", data);
+
+        //     }
+
+        // }   
     };
 
     // for entry in glob(slides_path.join("*.xml")).expect("Failed to read glob pattern") {
